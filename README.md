@@ -15,7 +15,7 @@ conda activate lipreader
 ```
 
 Main packages: `torch 2.13+cu126`, `torchvision`, `mediapipe 0.10.21`,
-`opencv-contrib-python 4.11`, `numpy`, `scipy`, `editdistance`.
+`opencv-contrib-python 4.11`, `numpy`, `scipy`, `editdistance`, `tqdm`.
 
 ## Step 1 — Data (one time)
 
@@ -48,7 +48,8 @@ python training\train.py --epochs 200
 ```
 
 - CTC loss, AdamW, batch 16, 75-frame clips, 96x96 grayscale mouth crops.
-- Progress printed every 50 steps; checkpoints saved to
+- A tqdm progress bar per epoch shows progress, ETA, iterations/s, and live
+  batch + running-average loss; checkpoints saved to
   `training/weights/lipnet_latest.pt` (best val WER → `lipnet_best.pt`).
 - Expect ~5-10 min per epoch on the RTX 4060. Converges noticeably after
   ~50-100 epochs (GRID WER ~10-20% after full training).

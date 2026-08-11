@@ -8,13 +8,13 @@ Usage:
 import argparse
 import os
 import random
-import time
 
 import editdistance
 import numpy as np
 import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
+from tqdm import tqdm
 
 import config
 from config import BLANK_IDX, IDX2CHAR, VOCAB_SIZE
@@ -40,7 +40,8 @@ def evaluate(model, loader, device):
     model.eval()
     cer, wer, n = 0.0, 0.0, 0
     with torch.no_grad():
-        for videos, _, _, _, texts in loader:
+        pbar = tqdm(loader, desc="  val", unit="it", ncols=110, dynamic_ncols=False, leave=False)
+        for videos, _, _, _, texts in pbar:
             videos = videos.to(device)
             logits = model(videos)
             preds = greedy_decode(logits, IDX2CHAR)
@@ -52,6 +53,7 @@ def evaluate(model, loader, device):
                 pred_words = pred.split()
                 wer += editdistance.eval(pred_words, ref_words)
                 n += 1
+        pbar.close()
     model.train()
     if n == 0:
         return float("nan"), float("nan")
@@ -96,9 +98,16 @@ def train(args):
     global_step = 0
     for epoch in range(1, args.epochs + 1):
         model.train()
-        t0 = time.time()
         running_loss = 0.0
-        for videos, padded, inp_len, tgt_len, _ in train_loader:
+        pbar = tqdm(
+            train_loader,
+            desc=f"epoch {epoch}/{args.epochs}",
+            unit="it",
+            ncols=110,
+            dynamic_ncols=False,
+            leave=True,
+        )
+        for i, (videos, padded, inp_len, tgt_len, _) in enumerate(pbar):
             videos = videos.to(device)
             padded = padded.to(device)
             inp_len = inp_len.to(device)
@@ -117,18 +126,14 @@ def train(args):
 
             running_loss += loss.item()
             global_step += 1
-            if global_step % args.display == 0:
-                print(
-                    f"epoch {epoch} step {global_step} loss {loss.item():.4f} "
-                    f"({(time.time()-t0)/args.display:.1f}s/it)"
-                )
-                t0 = time.time()
+            pbar.set_postfix(loss=f"{loss.item():.4f}", avg=f"{running_loss / (i + 1):.4f}")
+        pbar.close()
 
         torch.save(model.state_dict(), os.path.join(config.WEIGHTS_DIR, "lipnet_latest.pt"))
         val_cer, val_wer = evaluate(model, val_loader, device)
         print(
-            f"== epoch {epoch} done, train_loss {running_loss/len(train_loader):.4f} "
-            f"val_cer {val_cer:.4f} val_wer {val_wer:.4f}"
+            f"\n== epoch {epoch} done, train_loss {running_loss/len(train_loader):.4f} "
+            f"val_cer {val_cer:.4f} val_wer {val_wer:.4f}\n"
         )
         if val_wer < best_wer:
             best_wer = val_wer
