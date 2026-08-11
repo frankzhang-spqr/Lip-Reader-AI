@@ -51,6 +51,12 @@ python training\train.py --epochs 200
 - A tqdm progress bar per epoch shows progress, ETA, iterations/s, and live
   batch + running-average loss; checkpoints saved to
   `training/weights/lipnet_latest.pt` (best val WER → `lipnet_best.pt`).
+- **Stop & resume safely:** press **Ctrl+C** anytime — progress is saved to
+  `training/weights/checkpoint.pt` and the run exits cleanly. Re-run the same
+  command and it auto-resumes from the best checkpoint
+  (`checkpoint_best.pt`, else `checkpoint.pt`), continuing at the next epoch
+  with the optimizer state intact. Use `--fresh` to start over, or
+  `--resume-from PATH` to pick a specific checkpoint.
 - Expect ~5-10 min per epoch on the RTX 4060. Converges noticeably after
   ~50-100 epochs (GRID WER ~10-20% after full training).
 - Monitor: `tensorboard --logdir logs` (optional).
