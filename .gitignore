@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.vscode/
+
+# training artifacts (large)
+training/cache/
+training/raw/
+training/data/
+training/weights/
+training/*.log
+training/*.err
