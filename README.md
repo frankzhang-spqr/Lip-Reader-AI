@@ -112,3 +112,7 @@ python live_lipreader.py --demo 60        # capture 60 frames, decode, print, ex
 | `training/train.py` | CTC training loop with CER/WER eval |
 | `training/config.py` | Vocabulary + hyperparameters |
 | `lipreader_vision/` | MediaPipe face-landmark detection + mean-face template |
+
+
+
+python training\train.py --epochs 40 --batch-size 32 --fresh 

@@ -55,7 +55,7 @@ def infer_async(reader: LipNetReader, frames: list, landmarks: list, result: lis
         result[1] = False
 
 
-def run_live(reader: LipReader, camera_index: int, max_frames: int | None = None) -> None:
+def run_live(reader: LipNetReader, camera_index: int, max_frames: int | None = None) -> None:
     cap = cv2.VideoCapture(camera_index)
     if not cap.isOpened():
         raise RuntimeError(f"Cannot open camera {camera_index}. Is a webcam connected?")
@@ -146,7 +146,7 @@ def run_live(reader: LipReader, camera_index: int, max_frames: int | None = None
         cv2.destroyAllWindows()
 
 
-def run_demo(reader: LipReader, camera_index: int, num_frames: int) -> None:
+def run_demo(reader: LipNetReader, camera_index: int, num_frames: int) -> None:
     """Capture num_frames from the camera, decode, print the result, exit."""
     cap = cv2.VideoCapture(camera_index)
     if not cap.isOpened():
