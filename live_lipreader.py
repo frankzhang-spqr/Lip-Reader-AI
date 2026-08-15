@@ -1,10 +1,15 @@
-"""Live lip-reading from webcam using the AutoAVSR visual speech model.
+"""Live lip-reading from webcam.
+
+Models:
+    grid    our locally trained GRID LipNet (51-word vocabulary, fast)
+    english AutoAVSR pretrained open-vocabulary reader (~1 GB, decodes any
+            English sentence, slower; see README)
 
 Usage:
-    python live_lipreader.py                # webcam, CUDA if available
-    python live_lipreader.py --cpu           # force CPU
-    python live_lipreader.py --beam-size 20  # faster decode, slightly less accurate
-    python live_lipreader.py --demo 30       # capture 30 frames, decode, print, exit (no GUI)
+    python live_lipreader.py                      # grid model, webcam
+    python live_lipreader.py --model english      # open-vocabulary English
+    python live_lipreader.py --cpu                # force CPU
+    python live_lipreader.py --demo 60            # capture 60 frames, decode, print, exit
 
 Controls (in the camera window):
     SPACE  toggle recording  (hold to record a sentence, release to decode)
@@ -25,8 +30,13 @@ from lipnet_reader import LipNetReader
 TRAIN_WEIGHTS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "training", "weights")
 
 
-def load_reader(device: str) -> LipNetReader:
-    """Load our trained LipNet if present, otherwise error with instructions."""
+def load_reader(device: str, model: str) -> LipNetReader:
+    """Load the requested reader: our GRID LipNet or the open-vocabulary English reader."""
+    if model == "english":
+        from english_reader import EnglishReader
+
+        print("loading open-vocabulary English reader (AutoAVSR, ~1 GB)...")
+        return EnglishReader(device=device)
     for name in ("lipnet_best.pt", "lipnet_latest.pt"):
         wpath = os.path.join(TRAIN_WEIGHTS_DIR, name)
         if os.path.isfile(wpath):
@@ -175,6 +185,8 @@ def run_demo(reader: LipNetReader, camera_index: int, num_frames: int) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Live lip-reading from webcam")
     parser.add_argument("--camera", type=int, default=0, help="camera index (default 0)")
+    parser.add_argument("--model", type=str, choices=["grid", "english"], default="grid",
+                        help="grid = GRID LipNet (51-word vocab, fast); english = open-vocabulary AutoAVSR (slow, ~1 GB download on first run)")
     parser.add_argument("--cpu", action="store_true", help="force CPU")
     parser.add_argument("--demo", type=int, metavar="N", help="capture N frames, decode, exit")
     parser.add_argument("--live-frames", type=int, metavar="N", help="run GUI for N frames then exit")
@@ -182,7 +194,7 @@ def main() -> None:
 
     device = "cpu" if args.cpu or not torch.cuda.is_available() else "cuda:0"
     print(f"loading model on {device}...")
-    reader = load_reader(device)
+    reader = load_reader(device, args.model)
     print("model ready")
 
     if args.demo:

@@ -6,5 +6,6 @@ because training and live inference share this exact preprocessing pipeline.
 """
 
 from .detector import LandmarksDetector
+from .facemesh import FaceMeshDetector
 
-__all__ = ["LandmarksDetector"]
+__all__ = ["LandmarksDetector", "FaceMeshDetector"]

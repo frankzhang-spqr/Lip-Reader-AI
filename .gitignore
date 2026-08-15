@@ -9,3 +9,11 @@ training/data/
 training/weights/
 training/*.log
 training/*.err
+
+# AutoAVSR pretrained weights (~1.2 GB, auto-downloaded on first run)
+models/
+
+# Conformer trainer artifacts (large)
+corpus/
+vsr/spm/
+vsr/weights/
